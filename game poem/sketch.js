@@ -399,3 +399,4 @@ function drawFam1Particles() {
 function startFam2FadeIn() { fam2FadingIn = true; fam2Alpha = 0; showFam2 = true; }
 function groundPlane() { fill('black'); rect(0, height / 1.5 + playerSize, width, height); }
 function startSlide(direction) { slideDirection = direction; slideSpeed = 8; sliding = true; showPlayer = false; jerkTimer = 0; jerkOffsetY = jerkOffsetX = 0; slideX = direction == 1 ? -900 : width; }
+adsasdad
