@@ -197,8 +197,13 @@ function introScreen() {
     fill(255, memoryTextAlpha);
     textSize(48);
     text("Carry the memory, not the weight.", width / 2, height / 2);
+    
+    // --- Added line below ---
+    textSize(32);
+    text("Thank you.", width / 2, height / 2 + 70);
   }
 }
+
 
 // ===== Level 1 =====
 function levelOne() {
@@ -436,23 +441,33 @@ function startGame() {
 function mousePressed() { startGame(); }
 function touchStarted() { startGame(); return false; }
 
+
 // ===== Rendering =====
 function playerSprite() {
   if (reunionActive) moving = false;
   animRow = moving ? (facingRight ? 1 : 0) : (facingRight ? 2 : 3);
   displayX = lerp(displayX, playerX, 0.6);
 
-  if (moving) { frameTimer++; if (frameTimer >= frameDelay) { currentFrame = (currentFrame + 1) % totalFrames; frameTimer = 0; } }
-  else currentFrame = 0;
+  if (moving) {
+    frameTimer++;
+    if (frameTimer >= frameDelay) {
+      currentFrame = (currentFrame + 1) % totalFrames;
+      frameTimer = 0;
+    }
+  } else currentFrame = 0;
 
   let sx = currentFrame * frameWidth;
   let sy = animRow * frameHeight;
   let groundY = height / 1.5;
-  let dy = groundY - frameHeight * 0.71;
 
+  // Adjust vertical placement: normal sprite higher, sad sprite lower
   let spriteToUse = useSadSprite ? spritesed : playerSpriteImg;
+  let dyOffset = useSadSprite ? 0 : -6; // normal sprite slightly higher
+  let dy = groundY - frameHeight * 0.70 + dyOffset;
+
   image(spriteToUse, displayX, dy, frameWidth, frameHeight, sx, sy, frameWidth, frameHeight);
 }
+
 
 // ===== Movement =====
 function playerMovement() {
