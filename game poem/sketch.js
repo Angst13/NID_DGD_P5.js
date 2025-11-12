@@ -603,4 +603,3 @@ function startSlide(direction) {
   slideX = (direction == 1) ? -900 : width; // set initial x offscreen depending on direction
 }
 
-// ---- end of file ----
