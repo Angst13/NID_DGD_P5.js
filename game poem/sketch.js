@@ -42,10 +42,17 @@ let visitedLevel4 = false;
 let visitedLevel3 = false;
 
 // LEVEL 3 memory fade
-let memIndex = 0;
-let memAlpha = 0;
-let memPhase = "fadeIn";
-let memHoldTimer = 0;
+// LEVEL 3 smooth position-based fades
+let memAlpha = [0, 0, 0, 0, 0]; // fade for each memory
+let currentMem = -1;
+let fadeSmooth = 0.06; // lower = smoother fade
+
+// LEVEL 3 position-based memory triggers
+let memFade = 0;
+let currentMemIndex = -1; // -1 = no memory active
+let memFadeSpeed = 8;
+
+
 
 // fam transitions
 let fam1Alpha = 255;
@@ -318,28 +325,51 @@ function levelThree() {
   image(bgImg, 0, 0, width, height);
   groundPlane();
 
-  // If returning from level4, ensure bgm3 plays (otherwise keep bgm1)
+  // Music logic (keep previous)
   if (visitedLevel4) {
     if (!bgm3.isPlaying()) playBgm(bgm3, 0.38);
   } else {
     if (!bgm1.isPlaying()) playBgm(bgm1, 0.4);
   }
 
-  if (!visitedLevel3 && !visitedLevel4) visitedLevel3 = true;
+  // -------------------------------------
+  //  POSITION-BASED MEMORY TRIGGER AREAS
+  // -------------------------------------
+  if (!visitedLevel4) {
+    let sectionWidth = width / 5;
+    let memIndex = floor(playerX / sectionWidth);
+    memIndex = constrain(memIndex, 0, 4);
 
-  let memList = [mem1, mem2, mem3, mem4, mem5];
-  if (visitedLevel3 && memIndex < memList.length && !visitedLevel4) {
-    let currentMem = memList[memIndex];
-    if (memPhase === "fadeIn") { memAlpha += 4; if (memAlpha >= 255) { memAlpha = 255; memHoldTimer = 45; memPhase = "hold"; } }
-    else if (memPhase === "hold") { memHoldTimer--; if (memHoldTimer <= 0) memPhase = "fadeOut"; }
-    else if (memPhase === "fadeOut") { memAlpha -= 4; if (memAlpha <= 0) { memAlpha = 0; memIndex++; memPhase = "fadeIn"; } }
+    currentMem = memIndex;
 
-    push(); tint(255, memAlpha); image(currentMem, 0, 0, width, height); pop();
+    let memList = [mem1, mem2, mem3, mem4, mem5];
+
+    // Smoothly fade all memory images
+    for (let i = 0; i < 5; i++) {
+      if (i === currentMem) memAlpha[i] = lerp(memAlpha[i], 255, fadeSmooth);
+      else memAlpha[i] = lerp(memAlpha[i], 0, fadeSmooth);
+    }
+
+    // Draw memories BEHIND player
+    for (let i = 0; i < 5; i++) {
+      if (memAlpha[i] > 1) {
+        push();
+        tint(255, memAlpha[i]);
+        image(memList[i], 0, 0, width, height);
+        pop();
+      }
+    }
   }
 
+  // -------------------------------------
+  //  PLAYER ON TOP
+  // -------------------------------------
   if (showPlayer) playerSprite();
+
+  // Movement after rendering memories
   playerMovement();
 }
+
 
 // ===== Level 4 =====
 function levelFour() {
@@ -560,9 +590,37 @@ function drawReunionDialogue() {
 
 // ===== Fade Effects =====
 function updatePlayerSpeedGradual() {
-  targetSpeed = (currentgamelevel >= 1 && currentgamelevel <= 3) ? 12 : basePlayerSpeed;
+
+  // --- ALWAYS SLOW IN LEVEL 4 ---
+  if (currentgamelevel === 4) {
+    targetSpeed = basePlayerSpeed;   // slow emotional pace in Level 4
+  }
+
+  // --- AFTER LEVEL 4 RETURN ---
+  else if (visitedLevel4) {
+    // Keep slow speed in Level 3 return path
+    if (currentgamelevel === 3) {
+      targetSpeed = basePlayerSpeed;
+    } 
+    // Level 1 reunion + afterwards → normal fast
+    else {
+      targetSpeed = 12;
+    }
+  }
+
+  // --- BEFORE REACHING LEVEL 4 (FIRST TIME) ---
+  else {
+    // Fast through Levels 1–3
+    if (currentgamelevel >= 1 && currentgamelevel <= 3) {
+      targetSpeed = 12;
+    } else {
+      targetSpeed = basePlayerSpeed;
+    }
+  }
+
   playerSpeed = lerp(playerSpeed, targetSpeed, 0.08);
 }
+
 
 function startFam1FadeOut() { fam1Fading = true; fam1Particles = []; }
 
