@@ -31,7 +31,7 @@ let displayX = 0;
 // sad sprite switch
 let useSadSprite = false;
 
-// images (replace paths as needed)
+// images
 let level1Img, level1img2;
 let house1, fam1, fam2, level2bus;
 let back3, back1, back2, back2r, back3f;
@@ -41,18 +41,10 @@ let mem1, mem2, mem3, mem4, mem5;
 let visitedLevel4 = false;
 let visitedLevel3 = false;
 
-// LEVEL 3 memory fade
-// LEVEL 3 smooth position-based fades
-let memAlpha = [0, 0, 0, 0, 0]; // fade for each memory
+// LEVEL 3 SMOOTH MEMORY FADE (UPDATED)
+let memAlpha = [0, 0, 0, 0, 0];
 let currentMem = -1;
-let fadeSmooth = 0.06; // lower = smoother fade
-
-// LEVEL 3 position-based memory triggers
-let memFade = 0;
-let currentMemIndex = -1; // -1 = no memory active
-let memFadeSpeed = 8;
-
-
+let fadeSmooth = 0.02;  // LOWER = MORE GRADUAL
 
 // fam transitions
 let fam1Alpha = 255;
@@ -111,7 +103,6 @@ let bus;
 let busarrive;
 
 function preload() {
-  // IMAGES — update paths if needed
   level1Img = loadImage('images/b1.png');
   level1img2 = loadImage('images/b2.png');
   level2bus = loadImage('images/b1.png');
@@ -133,13 +124,12 @@ function preload() {
   mem4 = loadImage('images/mem4.png');
   mem5 = loadImage('images/mem5.png');
 
-  // SOUNDS — update paths if needed
   footstepSound = loadSound('images/walk1.mp3');
   footstepSound.setVolume(0.4);
 
-  bgm1 = loadSound('images/music1.mp3'); // initial bgm
-  bgm2 = loadSound('images/music2.mp3'); // level 4
-  bgm3 = loadSound('images/music3.mp3'); // return journey
+  bgm1 = loadSound('images/music1.mp3');
+  bgm2 = loadSound('images/music2.mp3');
+  bgm3 = loadSound('images/music3.mp3');
 
   bus = loadSound('images/bus.mp3');
   busarrive = loadSound('images/busarrive.mp3');
@@ -155,7 +145,7 @@ function setup() {
   frameHeight = playerSpriteImg.height / 4;
   displayX = playerX;
 
-  userStartAudio(); // unlock audio on interaction
+  userStartAudio();
 }
 
 function centerCanvas(c) {
@@ -204,13 +194,10 @@ function introScreen() {
     fill(255, memoryTextAlpha);
     textSize(48);
     text("Carry the memory, not the weight.", width / 2, height / 2);
-    
-    // --- Added line below ---
     textSize(32);
     text("Thank you.", width / 2, height / 2 + 70);
   }
 }
-
 
 // ===== Level 1 =====
 function levelOne() {
@@ -219,7 +206,6 @@ function levelOne() {
   image(level1Img, 1700, -10, 1300, 1300);
   image(level1img2, -600, -60, 1000, 900);
 
-  // Play appropriate BGM: before visiting level4 => bgm1, after visiting => bgm3
   if (!visitedLevel4) {
     if (!bgm1.isPlaying()) playBgm(bgm1, 0.4);
   } else {
@@ -231,7 +217,6 @@ function levelOne() {
     push(); tint(255, fam2Alpha); image(fam2, 0, 0, width, height); pop();
   }
 
-  // TRIGGER REUNION DIALOGUE WHEN SLIGHTLY FURTHER LEFT
   if (visitedLevel4 && showFam2 && !reunionActive && !reunionDone && playerX < width/2 - 300) {
     reunionActive = true;
     reunionDone = true;
@@ -239,7 +224,6 @@ function levelOne() {
     reunionStage = 0;
     reunionTimer = 0;
 
-    // Stop footsteps and prevent restart during dialogue
     allowFootsteps = false;
     if (footstepSound.isPlaying()) footstepSound.stop();
   }
@@ -259,11 +243,7 @@ function levelTwo() {
   if (sliding) showPlayer = false;
 
   if (sliding) {
-    // BUS MOVEMENT SOUND
-    if (!bus.isPlaying()) {
-      bus.setVolume(0.6);
-      bus.loop();
-    }
+    if (!bus.isPlaying()) { bus.setVolume(0.6); bus.loop(); }
 
     jerkTimer++;
     if (jerkTimer % jerkInterval === 0) {
@@ -279,19 +259,16 @@ function levelTwo() {
 
     slideX += slideSpeed * slideDirection;
 
-    // ARRIVAL LOGIC
     if (slideDirection == 1 && slideX > width) {
       sliding = false; showPlayer = true;
       if (bus.isPlaying()) bus.stop();
       if (busarrive) { busarrive.setVolume(0.6); busarrive.play(); }
 
-      // arrived at Level 3
       glNo = 3;
       currentgamelevel = 3;
       playerX = 0;
       displayX = playerX;
 
-      // If we left Level 4 to get here, ensure bgm3 plays
       if (visitedLevel4 && !bgm3.isPlaying()) playBgm(bgm3, 0.38);
       return;
     }
@@ -301,14 +278,12 @@ function levelTwo() {
       if (bus.isPlaying()) bus.stop();
       if (busarrive) { busarrive.setVolume(0.6); busarrive.play(); }
 
-      // arrived back at Level 1
       glNo = 1;
       currentgamelevel = 1;
       playerX = width - playerSize - 5;
       displayX = playerX;
       startFam2FadeIn();
 
-      // If we left Level 4 previously and are now returning, bgm3 should play
       if (visitedLevel4 && !bgm3.isPlaying()) playBgm(bgm3, 0.38);
       return;
     }
@@ -325,16 +300,13 @@ function levelThree() {
   image(bgImg, 0, 0, width, height);
   groundPlane();
 
-  // Music logic (keep previous)
   if (visitedLevel4) {
     if (!bgm3.isPlaying()) playBgm(bgm3, 0.38);
   } else {
     if (!bgm1.isPlaying()) playBgm(bgm1, 0.4);
   }
 
-  // -------------------------------------
-  //  POSITION-BASED MEMORY TRIGGER AREAS
-  // -------------------------------------
+  // ------- POSITION-BASED MEMORY TRIGGER (SMOOTHER VERSION) -------
   if (!visitedLevel4) {
     let sectionWidth = width / 5;
     let memIndex = floor(playerX / sectionWidth);
@@ -344,10 +316,10 @@ function levelThree() {
 
     let memList = [mem1, mem2, mem3, mem4, mem5];
 
-    // Smoothly fade all memory images
+    // Beautiful smooth easing
     for (let i = 0; i < 5; i++) {
-      if (i === currentMem) memAlpha[i] = lerp(memAlpha[i], 255, fadeSmooth);
-      else memAlpha[i] = lerp(memAlpha[i], 0, fadeSmooth);
+      let target = (i === currentMem ? 255 : 0);
+      memAlpha[i] += (target - memAlpha[i]) * fadeSmooth;
     }
 
     // Draw memories BEHIND player
@@ -361,26 +333,18 @@ function levelThree() {
     }
   }
 
-  // -------------------------------------
-  //  PLAYER ON TOP
-  // -------------------------------------
   if (showPlayer) playerSprite();
-
-  // Movement after rendering memories
   playerMovement();
 }
 
-
 // ===== Level 4 =====
 function levelFour() {
-  // mark visited
   visitedLevel4 = true;
 
   image(back3, 0, 0, width, height);
   groundPlane();
   image(house1, 0, 0, width, height);
 
-  // switch music to bgm2
   if (!bgm2.isPlaying()) playBgm(bgm2, 0.45);
 
   let groundY = height / 1.5 + playerSize;
@@ -461,16 +425,13 @@ function drawBlackScreen() {
 function startGame() { 
   if (currentgamelevel == 0) { 
     glNo = 1; currentgamelevel = 1; playerX = 0; displayX = playerX; playerSpeed = basePlayerSpeed; memoryTextAlpha = 0; 
-    // start bgm1 for initial run
     if (!visitedLevel4 && !bgm1.isPlaying()) playBgm(bgm1, 0.4);
-    // if returning after visiting level4, ensure bgm3 plays
     if (visitedLevel4 && !bgm3.isPlaying()) playBgm(bgm3, 0.38);
   } 
   if (blackScreen && blackPhase === "showText") blackPhase = "fadeOut"; 
 }
 function mousePressed() { startGame(); }
 function touchStarted() { startGame(); return false; }
-
 
 // ===== Rendering =====
 function playerSprite() {
@@ -490,14 +451,12 @@ function playerSprite() {
   let sy = animRow * frameHeight;
   let groundY = height / 1.5;
 
-  // Adjust vertical placement: normal sprite higher, sad sprite lower
   let spriteToUse = useSadSprite ? spritesed : playerSpriteImg;
-  let dyOffset = useSadSprite ? 0 : -6; // normal sprite slightly higher
+  let dyOffset = useSadSprite ? 0 : -6;
   let dy = groundY - frameHeight * 0.70 + dyOffset;
 
   image(spriteToUse, displayX, dy, frameWidth, frameHeight, sx, sy, frameWidth, frameHeight);
 }
-
 
 // ===== Movement =====
 function playerMovement() {
@@ -505,13 +464,11 @@ function playerMovement() {
   moving = false;
   let moveStep = playerSpeed * 0.6;
 
-  // Slower movement in Level 3 memory walk
   if (currentgamelevel == 3 && !visitedLevel4) moveStep = playerSpeed * 0.3;
 
   if (keyIsDown(RIGHT_ARROW)) { playerX += moveStep; facingRight = true; moving = true; }
   else if (keyIsDown(LEFT_ARROW)) { playerX -= moveStep; facingRight = false; moving = true; }
 
-  // Play footsteps only if allowed (not during dialogue freeze)
   if (moving && allowFootsteps && !footstepSound.isPlaying()) {
     footstepSound.loop();
   } else if ((!moving || !allowFootsteps) && footstepSound.isPlaying()) {
@@ -551,7 +508,7 @@ function drawReunionDialogue() {
   }
   else if (reunionStage === 4) {
     text("...", width/2, height/1.15);
-    // Emit warm particles across full width (like Level 4 vanish)
+
     for (let i = 0; i < 6; i++) {
       warmParticles.push({
         x: random(width),
@@ -569,48 +526,35 @@ function drawReunionDialogue() {
   }
 
   reunionTimer++;
-  if (reunionTimer > 140) {
+  if (reunionTimer > 180) {
     reunionTimer = 0;
     reunionStage++;
   }
 
-  // End of dialogue sequence
   if (reunionStage > 5) {
     reunionActive = false;
     dialogueFrozen = false;
     moving = false;
 
-    // re-enable footsteps so next move will replay sounds
     allowFootsteps = true;
 
-    // ensure footsteps are stopped now, so playerMovement will restart them cleanly on next move
     if (footstepSound.isPlaying()) footstepSound.stop();
   }
 }
 
 // ===== Fade Effects =====
 function updatePlayerSpeedGradual() {
-
-  // --- ALWAYS SLOW IN LEVEL 4 ---
   if (currentgamelevel === 4) {
-    targetSpeed = basePlayerSpeed;   // slow emotional pace in Level 4
+    targetSpeed = basePlayerSpeed;
   }
-
-  // --- AFTER LEVEL 4 RETURN ---
   else if (visitedLevel4) {
-    // Keep slow speed in Level 3 return path
     if (currentgamelevel === 3) {
       targetSpeed = basePlayerSpeed;
-    } 
-    // Level 1 reunion + afterwards → normal fast
-    else {
+    } else {
       targetSpeed = 12;
     }
   }
-
-  // --- BEFORE REACHING LEVEL 4 (FIRST TIME) ---
   else {
-    // Fast through Levels 1–3
     if (currentgamelevel >= 1 && currentgamelevel <= 3) {
       targetSpeed = 12;
     } else {
@@ -620,7 +564,6 @@ function updatePlayerSpeedGradual() {
 
   playerSpeed = lerp(playerSpeed, targetSpeed, 0.08);
 }
-
 
 function startFam1FadeOut() { fam1Fading = true; fam1Particles = []; }
 
@@ -652,7 +595,7 @@ function drawWarmParticles() {
     let p = warmParticles[i];
     p.x += p.vx;
     p.y += p.vy;
-    p.alpha -= 4; // fade
+    p.alpha -= 4;
 
     fill(255, 180, 120, p.alpha);
     noStroke();
@@ -665,7 +608,6 @@ function drawWarmParticles() {
 function startFam2FadeIn() { fam2FadingIn = true; fam2Alpha = 0; showFam2 = true; }
 function groundPlane() { fill('black'); rect(0, height / 1.5 + playerSize, width, height); }
 
-// startSlide triggers the sliding bus animation (direction: 1 forward, -1 backward)
 function startSlide(direction) {
   slideDirection = direction;
   slideSpeed = 8;
@@ -673,6 +615,5 @@ function startSlide(direction) {
   showPlayer = false;
   jerkTimer = 0;
   jerkOffsetY = jerkOffsetX = 0;
-  slideX = (direction == 1) ? -900 : width; // set initial x offscreen depending on direction
+  slideX = (direction == 1) ? -900 : width;
 }
-
