@@ -1,7 +1,7 @@
 
 let size=20
 function setup() {
-  createCanvas(400, 400);
+  createCanvas(windowWidth, windowHeight);
   background(220);
   frameRate(10);
 }

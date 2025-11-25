@@ -2,6 +2,7 @@ let size = 100;
 let hexnumber =["#3acee1ff","#164e55ff","#004f5aff","#132b2eff","#043823ff","#0e383dff","#126e3eff","#32825dff","#17703fff","#3c912dff","#4c862bff"]
 function setup() {
   createCanvas(innerWidth, innerHeight);
+  frameRate(5);
 }
 
 function draw() {

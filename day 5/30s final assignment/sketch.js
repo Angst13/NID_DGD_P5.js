@@ -188,7 +188,7 @@ if(isswrcut == false) {
   }
   fill(0);
   noStroke();
-  textSize(20);
+  textSize(15);
   text("mouseX: " + mouseX + "  mouseY: " + mouseY, 20, 20);
 image(pic20, posX20, posY20, 2000+scale20, 1414+scale20);
 

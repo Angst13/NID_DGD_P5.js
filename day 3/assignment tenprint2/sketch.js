@@ -1,7 +1,7 @@
 let size = 40;
 
 function setup() {
-  createCanvas(900, 900);
+  createCanvas(windowWidth, windowHeight);
   rectMode(CENTER);
   noFill();
   frameRate(6);

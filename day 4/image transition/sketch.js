@@ -10,7 +10,7 @@ function preload() {
 }
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  frameRate(24);
+  frameRate(5);
 
 }
 
