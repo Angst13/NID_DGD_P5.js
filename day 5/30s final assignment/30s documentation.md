@@ -3,7 +3,7 @@ A Glimpse of Vagabond – Interactive Experience
 
 
  aim or initial objective:
- To create an narrativce interactive animated experience of the manga Vagabond
+ To create an narrative interactive animated experience of the manga Vagabond
 
 
 
